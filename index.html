@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 학습 피드백 도우미</title>
+</head>
+<body>
+    <h1>AI 학습 피드백 도우미</h1>
+    <form id="feedbackForm">
+        <label>학생 이름: <input type="text" id="name" required></label><br>
+        <label>시험 결과(텍스트):</label><br>
+        <textarea id="results" rows="5" cols="40" required></textarea><br>
+        <button type="submit">분석하기</button>
+    </form>
+    <div id="output"></div>
+    <script>
+        document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const results = document.getElementById('results').value;
+            const res = await fetch('/analyze', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, results})
+            });
+            const data = await res.json();
+            document.getElementById('output').innerText = data.feedback;
+        });
+    </script>
+</body>
+</html>
