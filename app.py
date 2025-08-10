@@ -19,6 +19,10 @@ SYSTEM_PROMPT = (
     " weak_units (array of strings), plan (string, step-by-step study plan), tips (array of short tips)."
 )
 
+@app.route('/')
+def index():
+    return "AI Learning Feedback Server is running!"
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     data = request.json or {}
