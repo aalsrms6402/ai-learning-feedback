@@ -1,12 +1,15 @@
 from flask import Flask, request, jsonify, send_from_directory
-import os, json
-from dotenv import load_dotenv
+import os
+import json
+# from dotenv import load_dotenv  # 필요하면 주석 해제하고 사용하세요
 import openai
 
-load_dotenv()
+# 개발 환경에서만 .env 파일 사용 시 주석 해제
+# load_dotenv()
+
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if not OPENAI_API_KEY:
-    raise RuntimeError('OPENAI_API_KEY is not set in environment')
+    raise RuntimeError('OPENAI_API_KEY 환경변수가 설정되지 않았습니다.')
 openai.api_key = OPENAI_API_KEY
 
 app = Flask(__name__)
