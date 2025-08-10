@@ -1,5 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory  # send_from_directory 여기 추가
-
+from flask import Flask, request, jsonify, send_from_directory
 import os, json
 from dotenv import load_dotenv
 import openai
@@ -11,16 +10,17 @@ if not OPENAI_API_KEY:
 openai.api_key = OPENAI_API_KEY
 
 app = Flask(__name__)
-# 기존 코드 유지
-# 여기에 아래 코드를 넣어줘
+
+SYSTEM_PROMPT = (
+    "You are an educational diagnostic assistant for high school students. "
+    "Given a short text describing wrong answers and brief context, return a JSON object with keys:"
+    " weak_units (array of strings), plan (string, step-by-step study plan), tips (array of short tips)."
+)
 
 @app.route('/')
 def home():
-    # 현재 app.py가 있는 폴더에서 index.html 파일을 찾아서 돌려준다.
     return send_from_directory('.', 'index.html')
 
-
-# 기존에 있던 /api/analyze 라우트도 그대로 둔다.
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     data = request.json or {}
@@ -61,4 +61,5 @@ def analyze():
         return jsonify({'ok':False,'error':str(e)}),500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
