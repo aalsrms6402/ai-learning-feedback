@@ -1,18 +1,16 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 import json
-# from dotenv import load_dotenv  # 필요하면 주석 해제하고 사용하세요
 import openai
 
-# 개발 환경에서만 .env 파일 사용 시 주석 해제
-# load_dotenv()
+app = Flask(__name__)
+CORS(app)  # 모든 도메인에 대해 CORS 허용 (배포 시 제한 권장)
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if not OPENAI_API_KEY:
     raise RuntimeError('OPENAI_API_KEY 환경변수가 설정되지 않았습니다.')
 openai.api_key = OPENAI_API_KEY
-
-app = Flask(__name__)
 
 SYSTEM_PROMPT = (
     "You are an educational diagnostic assistant for high school students. "
@@ -20,18 +18,14 @@ SYSTEM_PROMPT = (
     " weak_units (array of strings), plan (string, step-by-step study plan), tips (array of short tips)."
 )
 
-@app.route('/')
-def home():
-    return send_from_directory('.', 'index.html')
-
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     data = request.json or {}
-    raw = data.get('rawInput','')
-    student = data.get('studentName','학생')
+    raw = data.get('rawInput', '')
+    student = data.get('studentName', '학생')
 
     if not raw.strip():
-        return jsonify({'ok':False,'error':'rawInput required'}),400
+        return jsonify({'ok': False, 'error': 'rawInput required'}), 400
 
     user_prompt = (
         f"Student name: {student}\n"
@@ -44,8 +38,8 @@ def analyze():
         resp = openai.ChatCompletion.create(
             model='gpt-4o-mini',
             messages=[
-                {"role":"system","content":SYSTEM_PROMPT},
-                {"role":"user","content":user_prompt}
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt}
             ],
             max_tokens=800,
             temperature=0.2,
@@ -56,13 +50,21 @@ def analyze():
         try:
             payload = json.loads(text)
         except Exception:
-            payload = {'weak_units':[], 'plan': text, 'tips':[]}
+            payload = {'weak_units': [], 'plan': text, 'tips': []}
 
-        return jsonify({'ok':True, 'diagnosis': payload.get('weak_units',[]), 'plan': payload.get('plan', text), 'raw_model': text})
+        return jsonify({
+            'ok': True,
+            'diagnosis': payload.get('weak_units', []),
+            'plan': payload.get('plan', text),
+            'tips': payload.get('tips', []),
+            'raw_model': text
+        })
 
     except Exception as e:
-        return jsonify({'ok':False,'error':str(e)}),500
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
+
